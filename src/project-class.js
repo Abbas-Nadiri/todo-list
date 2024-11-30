@@ -24,11 +24,25 @@ export default class Project{
     }
 } 
 
-export class ProjectList {
+class ProjectArray {
     constructor(projects = []){
         this.projects = projects;
     }
 
+    getProjectArray(){
+        return this.projects;
+    }
+
+    addProject(project){
+        this.projects.push(project);
+    }
+
+    removeProject(projectTitle){
+        let position = this.projects.findIndex(project => project.getProjectName() == projectTitle);
+        if (position != -1) {
+            this.tasks.splice(position, 1);
+        };
+    }
 }
 
-
+export const projectArray = new ProjectArray();
