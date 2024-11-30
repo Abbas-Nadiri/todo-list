@@ -4,45 +4,35 @@ export default class Project{
         this.tasks = tasks;
     }
 
-    getProjectName(){
-        return this.title;
-    }
-
-    getTasks(){
-        return this.tasks;
-    }
-
     addTask(task) {
         this.tasks.push(task);
     }
 
-    removeTask(taskTitle){
-        let position = this.tasks.findIndex(toDo => toDo.title == taskTitle);
+    removeTask(task){
+        let position = this.tasks.indexOf(task);
         if (position != -1) {
             this.tasks.splice(position, 1);
         };
     }
 } 
 
-class ProjectArray {
+class ProjectsArray {
     constructor(projects = []){
         this.projects = projects;
-    }
-
-    getProjectArray(){
-        return this.projects;
     }
 
     addProject(project){
         this.projects.push(project);
     }
 
-    removeProject(projectTitle){
-        let position = this.projects.findIndex(project => project.getProjectName() == projectTitle);
+    removeProject(project){
+        let position = this.projects.indexOf(project);
         if (position != -1) {
-            this.tasks.splice(position, 1);
+            this.projects.splice(position, 1);
         };
     }
 }
 
-export const projectArray = new ProjectArray();
+export const projectsArray = new ProjectsArray();
+const defaultProject = new Project("Default");
+projectsArray.addProject(defaultProject);
