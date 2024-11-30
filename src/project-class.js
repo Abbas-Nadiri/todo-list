@@ -4,7 +4,7 @@ export default class Project{
         this.tasks = tasks;
     }
 
-    getProject(){
+    getProjectName(){
         return this.title;
     }
 
@@ -24,4 +24,11 @@ export default class Project{
     }
 } 
 
-export const projectList = [];
+export class ProjectList {
+    constructor(projects = []){
+        this.projects = projects;
+    }
+
+}
+
+
