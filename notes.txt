@@ -1,9 +1,15 @@
-class ToDoItem {
-	constructor (title, description, dueDate, priority) {
-		this.title = title;
-		this.description = description;
-		this.dueDate = dueDate;
-		this.priority = priority;
-	}
-}
+    removeTask(taskTitle){
+        let position = this.tasks.findIndex(toDo => toDo.title == taskTitle);
+        if (position != -1) {
+            this.tasks.splice(position, 1);
+        };
+    }
 
+in the dropdown menu of the create task modal, store the value of the project selected in currentProject
+
+Next steps:
+
+display dummy tasks
+
+the priority and complete/incomplete status can be appended as classes (maybe use the toggle function in WDS)
+the completed tab should probably be its own Project, and the Completed display should always show the number of toDoItems in there
