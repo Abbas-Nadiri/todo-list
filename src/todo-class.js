@@ -6,21 +6,11 @@ export default class ToDoItem{
 		this.priority = priority;
     }
 
-    getTitle(){
-        return this.title;
-    }
-
     displayItem(){
         console.log(`Title: ${this.title}`);
         console.log(`Description: ${this.desc}`);
         console.log(`Due Date: ${this.dueDate}`);
         console.log(`Priority: ${this.priority}`);
     }
-
-
 }
 
-export function createToDo(title, desc, dueDate, priority) {
-    const item = new ToDoItem(title, desc, dueDate, priority);
-    currentProject.addTask(item);
-}

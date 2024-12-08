@@ -1,10 +1,18 @@
-export default class Project{
+import { currentProject } from "./index";
+import ToDoItem from "./todo-class";
+
+//class for creating project objects to store tasks
+ export default class Project{
     constructor(title, tasks = []){
         this.title = title;
         this.tasks = tasks;
-        this.tasks.forEach(obj => {
-            obj.getContainingProject = () => this;
-        });
+    }
+
+    getTask(taskTitle) {
+        const position = this.tasks.findIndex(task => task.title = taskTitle);
+        if (position != -1) {
+            return this.tasks[position];
+        }
     }
 
     addTask(task) {
@@ -18,10 +26,9 @@ export default class Project{
             this.tasks.splice(position, 1);
         };
     }
-
-
 } 
 
+//class for creating single projectsArray object to store all projects
 class ProjectsArray {
     constructor(projects = []){
         this.projects = projects;
@@ -47,12 +54,12 @@ class ProjectsArray {
 }
 
 export const projectsArray = new ProjectsArray();
-const defaultProject = new Project("Default");
-projectsArray.addProject(defaultProject);
+createProject("Default");
 
 // functions for button eventListeners
-export function addProject(project) {
-    projectsArray.addProject(project);
+export function createProject(projectName) {
+    let newProject = new Project(projectName);
+    projectsArray.addProject(newProject);
 }
 
 export function removeProject(project) {
@@ -62,4 +69,9 @@ export function removeProject(project) {
 export function moveTask(task, destination) {
     task.getContainingProject().removeTask(task);
     projectsArray.getProject(destination).addTask(task);
+}
+//needs to be refactored once DOM stuff is implemented
+export function createToDo(title, desc, dueDate, priority) {
+    const item = new ToDoItem(title, desc, dueDate, priority);
+    currentProject.addTask(item);
 }
