@@ -3,9 +3,15 @@ import Project, { projectsArray, createProject, removeProject , moveTask, create
 import "./styles.css";
 import untickedImg from "./icons/unticked.svg";
 import tickedImg from "./icons/ticked.svg";
-
+import folderImg from "./icons/folder-open-outline.svg";
 
 export let currentProject = projectsArray.getProject("Default");
+
+function toKebabCase(str) {
+    return str
+        .trim()
+        .replace(/\s+/g, '-');
+};
 
 createToDo("test","DO THE THING", "ASAP", "TURBO HIGH");
 createToDo("alternate", "wowie", "hehehe", "kind of");
@@ -38,8 +44,7 @@ function displayToDoItem(item) {
     ticked.src = tickedImg;
     taskCardButton.append(unticked);
 
-    // add ".completed" class to completed tasks 
-    
+    // add ".completed-task" class to completed tasks 
     taskCardButton.addEventListener("click", () => {
         taskCard.classList.toggle("completed-task");
         console.log(taskCard.classList.contains("completed-task"));
@@ -58,8 +63,39 @@ function displayToDoItem(item) {
     tasksDisplay.append(taskCard);
 }
 //do this for each project 
-currentProject.tasks.forEach(item => displayToDoItem(item));
+
 
 //update the pending display number
 const pendingCount = document.querySelector(".pending-count");
-pendingCount.textContent = document.querySelector(".tasks-display").childElementCount;
+
+
+//display each project in the sidebar
+
+function displayProjects() {
+    projectsArray.projects.forEach(project => {
+
+        const projectsSidebar = document.querySelector(".projects");
+        const projectButton = document.createElement("button");
+        const img = document.createElement("img");
+        img.src = folderImg;
+        projectButton.classList.add(toKebabCase(project.title));
+        const projectName = document.createElement("span");
+        projectName.textContent = project.title;
+        
+        projectButton.append(img, projectName);
+        projectsSidebar.append(projectButton);
+
+        //create eventListeners for each project button
+
+        projectButton.addEventListener("click", () => {
+            tasksDisplay.innerHTML = "";
+            currentProject = project;
+            currentProject.tasks.forEach(item => displayToDoItem(item));
+            pendingCount.textContent = document.querySelector(".tasks-display").childElementCount;
+        })
+    })
+}
+
+displayProjects();
+
+
