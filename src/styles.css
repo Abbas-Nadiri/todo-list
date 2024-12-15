@@ -47,6 +47,10 @@ body {
     height: 100vh;
 }
 
+button {
+  user-select: none;
+}
+
 .navbar {
     grid-area: 1/1/2/2;
     background-color: rgb(26, 26, 26);
@@ -72,7 +76,7 @@ body {
     font-weight: lighter;
 }
 .logo>img {
-    height: 30px;
+    height: 36px;
 }
 .tasks {
     display: flex;
@@ -86,6 +90,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 6px;
+    min-height: 100%;
 }
 
 img {
@@ -104,7 +109,62 @@ img {
 }
 
 #add-project {
-    display: flex;
+  order: 99999;
+}
+
+.project-modal {
+  margin: auto;
+  background-color: rgb(35, 35, 35);
+  border: none;
+  padding-left: 40px;
+  padding-right: 40px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  border-radius: 0.5rem;
+  user-select: none;
+  opacity: 0;
+  transition: all 0.3s allow-discrete;
+}
+
+.project-modal-container {
+  display: flex;
+  flex-direction: column;
+  height: 150px;
+  width: 300px;
+  align-items: center;
+  gap: 14px;
+}
+
+.project-modal-title {
+  font-size: 30px;
+}
+
+.project-modal-container>input {
+  background-color: #505050;
+  font-size: 20px;
+  border: none;
+  border-radius: 0.2rem;
+  height: 40px;
+  width: 100%;
+  padding-left: 6px;
+}
+
+.project-modal-buttons {
+  display: flex;
+  gap: 140px;
+}
+.project-modal-buttons>button {
+  height: 40px;
+  width: 80px;
+  background-color: inherit;
+  border: 2px solid #505050;
+  border-radius: 0.5rem;
+}
+
+.project-modal-buttons>button:hover {
+  background-color: #505050;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
 .projects>button>span, .tasks>button>span{
@@ -169,13 +229,14 @@ img {
   align-items: center;
   justify-content: start;
   gap: 10px;
+  user-select: none;
 }
 
 .task-card {
   width: 100%;
   height: 2.6rem;
   background-color: #303030;
-  border: 1px solid rgba(255, 255, 0, 0.461);
+  border: 1px solid grey;
   border-radius: 0.5rem;
   display: flex;
   justify-content: space-between;
@@ -184,6 +245,18 @@ img {
   padding-right: 8px;
   gap: 8px;
   user-select: none;
+}
+
+.high-prio {
+  border: 1px solid rgba(255, 0, 0, 0.461);
+}
+
+.med-prio {
+  border: 1px solid rgba(255, 128, 0, 0.461);
+}
+
+.low-prio {
+  border: 1px solid rgba(255, 255, 0, 0.461);
 }
 
 .task-card>button {
@@ -204,4 +277,170 @@ img {
 
 .completed-task {
   text-decoration: line-through;
+}
+
+.addTask-btn {
+  position: fixed;
+  color: black;
+  background-color: rgba(255, 255, 255, 0.376);
+  height: 50px;
+  width: 120px;
+  bottom: 80px;
+  right: 80px;
+  font-size: 1rem;
+  display: flex;
+  gap: 8px;
+  border-radius: 0.5rem;
+  justify-content: center;
+  align-items: center;
+  border: none;
+
+}
+
+.addTask-btn>img {
+  height: 0.9rem;
+}
+
+.addTask-btn>div {
+  font-weight: bold;
+}
+
+.addTask-btn:hover {
+  background-color: rgba(128, 128, 128, 0.418);
+  cursor: pointer;
+  box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.504);
+  transition-duration: 0.15s;
+}
+
+.addTask-form {
+  background-color: inherit;
+}
+
+/*styling modal form*/
+
+.modal-form {
+  margin: auto;
+  background-color: rgb(35, 35, 35);
+  height: 500px;
+  width: 350px;
+  border: none;
+  border-radius: 0.5rem;
+  user-select: none;
+  padding-left: 40px;
+  padding-right: 40px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  opacity: 0;
+  transition: all 0.3s allow-discrete;
+}
+
+dialog[open] {
+  opacity: 1;
+}
+
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0);
+  transition: all 0.3s allow-discrete;
+}
+
+dialog[open]::backdrop {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+@starting-style {
+  dialog[open] {
+    opacity: 0;
+  }
+  dialog[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.modal-header {
+  justify-self: center;
+  font-weight: bolder;
+  font-size: 1.7rem;
+  padding-bottom: 12px;
+}
+
+#title {
+  font-size: 1rem;
+  font-weight: bold;
+}
+#title, #description {
+  width: 100%;
+  background-color: inherit;
+  border: none;
+}
+
+textarea {
+  resize: none;
+  overflow: hidden;
+  height: 9rem;
+  line-height: 1.2;
+  font-size: 0.8rem;
+}
+
+input:focus, textarea:focus, #projectSelector:focus {
+  outline: none;
+}
+
+.dueDate-container, .projectSelector-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+#dueDate {
+  background-color: inherit;
+  border: none;
+  user-select: none;
+}
+
+#dueDate:hover {
+  cursor: pointer;
+}
+
+#projectSelector {
+  background-color: inherit;
+  border-radius: 0.5rem;
+  border: none;
+}
+
+#projectSelector>option {
+  background-color: rgb(35, 35, 35);
+}
+
+legend, .dueDate-container>label, .projectSelector-container>label {
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.submit-form{
+  background-color: inherit;
+  padding: 6px;
+  border-radius: 0.5rem;
+  width: 100%;
+  height: 40px;
+  border: 2px solid #505050;
+  font-weight: bolder;
+  font-size: 0.9rem;
+}
+
+.submit-form:hover {
+  cursor: pointer;
+  background-color: #505050;
+  transition: 0.2s;
+  justify-self: end;
+}
+
+fieldset {
+  border: none;
+  display: flex;
+  justify-content: space-around;
 }
