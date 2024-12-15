@@ -9,7 +9,10 @@ export let currentProject = projectsArray.getProject("Default");
 
 //define initial constants and functions
 const tasksDisplay = document.querySelector(".tasks-display");
-const pendingCount = document.querySelector(".pending-count");
+function updatePendingCount() {
+    const pendingCount = document.querySelector(".pending-count");
+    pendingCount.textContent = document.querySelector(".tasks-display").childElementCount
+};
 function toKebabCase(str) {
     return str
         .trim()
@@ -99,7 +102,7 @@ function displayProject(project) {
         currentProject = project;
         currentProject.tasks.forEach(item => displayToDoItem(item));
         //update the pending display number
-        pendingCount.textContent = document.querySelector(".tasks-display").childElementCount;
+        updatePendingCount();
     })
 }
 
@@ -126,6 +129,7 @@ addTaskForm.addEventListener("submit", (event) => {
     currentProject = projectsArray.getProject(data.projectSelector);
     const newToDo = createToDo(data.title, data.description, data.dueDate, data.priority);
     displayToDoItem(newToDo);
+    updatePendingCount();
     //localStorage.setItem("formData", JSON.stringify(formData));   return to this when wanting to add persistent local storage
     addTaskForm.reset();
 });
