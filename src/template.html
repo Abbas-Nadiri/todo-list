@@ -38,31 +38,83 @@
 
         <div class="projects">
             <p>Projects</p>
-            <button id="default-project">
-                <img src="./icons/folder-open-outline.svg" alt="folder-icon">
-                <span>Default</span>
-            </button>
             <button id="add-project">
                 <img src="./icons/plus-icon.svg" alt="plus-icon">
                 <span>Add Project</span>
             </button>
         </div>
+        <dialog class="project-modal">
+            <div class="project-modal-container">
+                <div class="project-modal-title">New Project</div>
+                <input type="text" placeholder="Project Name" id="project-modal-input" maxlength="22">
+
+            <div class="project-modal-buttons">
+                <button class="project-modal-cancel">Cancel</button>
+                <button class="project-modal-create">Create</button>
+            </div>
+            </div>
+        </dialog>
     </div>
     <div class="container">
         <div class="header-area">
             <p class="heading">Today</p>
             <div class="status">
                 <div class="pending-display">
-                    <div class="pending-count"></div>
+                    <div class="pending-count">0</div>
                     <div>Pending</div>
                 </div>
                 <div class="completed-display">
-                    <div class="completed-count">1</div>
+                    <div class="completed-count">0</div>
                     <div>Completed</div>
                 </div>
             </div>
         </div>
         <div class="tasks-display"></div>
+        <button class="addTask-btn">
+            <img src="./icons/plus-icon.svg" alt="plus-icon">
+            <div>Add Task</div>
+        </button>
     </div>
+    <dialog class="modal-form">
+        <div class="modal-header">New Task</div>
+
+        <form method="POST" id="addTask-form">
+            <input type="text" id="title" placeholder="Title" name="title" required>
+
+            <textarea id="description" placeholder="Description" name="description" rows="1"></textarea required>
+            
+            <div class="dueDate-container">
+                <label for="dueDate">Due Date</label>
+                <input type="date" id="dueDate" name="dueDate" required>
+            </div>
+            <div class="projectSelector-container">
+                <label for="projectSelector">Project</label>
+                <select name="projectSelector" id="projectSelector" required>
+
+                </select>
+            </div>
+            <div class="priority-container">
+                <legend>Priority</legend>
+                <fieldset>
+                    <label>
+                        <input type="radio" name="priority" id="low-prio" value="low" required>
+                        Low
+                    </label>
+                    <label>
+                        <input type="radio" name="priority" id="med-prio" value="med" required>
+                        Medium
+                    </label>
+                    <label>
+                        <input type="radio" name="priority" id="high-prio" value="high"required>
+                        High
+                    </label>
+                </fieldset>
+            </div>
+
+            <button class="submit-form">Add Task</button>
+        </form>
+        
+
+    </dialog>
 </body>
 </html>
