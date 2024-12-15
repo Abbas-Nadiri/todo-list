@@ -54,12 +54,14 @@ class ProjectsArray {
 }
 
 export const projectsArray = new ProjectsArray();
+
 createProject("Default");
 
 // functions for button eventListeners
 export function createProject(projectName) {
     let newProject = new Project(projectName);
     projectsArray.addProject(newProject);
+    return newProject;
 }
 
 export function removeProject(project) {
@@ -70,8 +72,9 @@ export function moveTask(task, destination) {
     task.getContainingProject().removeTask(task);
     projectsArray.getProject(destination).addTask(task);
 }
-//needs to be refactored once DOM stuff is implemented
+//maybe needs to be refactored once DOM stuff is implemented
 export function createToDo(title, desc, dueDate, priority) {
     const item = new ToDoItem(title, desc, dueDate, priority);
     currentProject.addTask(item);
+    return item;
 }
