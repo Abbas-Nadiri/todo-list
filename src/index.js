@@ -4,30 +4,45 @@ import "./styles.css";
 import untickedImg from "./icons/unticked.svg";
 import tickedImg from "./icons/ticked.svg";
 import folderImg from "./icons/folder-open-outline.svg";
+import crossImg from "./icons/cross.svg";
+import { format, parseISO, isWithinInterval, addDays, startOfDay, isSameDay } from "date-fns";
 
 export let currentProject = projectsArray.getProject("Default");
 
 //define initial constants and functions
 const tasksDisplay = document.querySelector(".tasks-display");
+const modalForm = document.querySelector(".modal-form");
 function updatePendingCount() {
     const pendingCount = document.querySelector(".pending-count");
     pendingCount.textContent = document.querySelector(".tasks-display").childElementCount
 };
+
 function toKebabCase(str) {
     return str
         .trim()
         .replace(/\s+/g, '-');
 };
 
-createToDo("test","DO THE THING", "ASAP", "high");
-createToDo("alternate", "wowie", "hehehe", "med");
-createToDo("kreyzi", "when", "maybe way", "low");
+//get today's date
+const todaysDate = startOfDay(new Date());
+const formattedTodaysDate = format(todaysDate, "yyyy-MM-dd");
 
-createProject("test project 1");
-currentProject = projectsArray.getProject("test project 1");
+//convert dates from ISO format into DD/MM/YYYY
+function handleDateChange(date) {
+    const parsedDate = parseISO(date);
+    return format(parsedDate, "dd/MM/yyyy");
+}
 
-createToDo("shaboing", "what", "no way", "med");
-createToDo("blabla", "where", "yes way", "low");
+//create dummy toDo items
+createToDo("Tidy room","DO THE THING", format(addDays(todaysDate, 1), "yyyy-MM-dd"), "high");
+createToDo("Make a morbillion dollars", "wowie", format(addDays(todaysDate, 6), "yyyy-MM-dd"), "med");
+createToDo("Do it again", "how", formattedTodaysDate, "low");
+//create dummy project
+createProject("Important");
+currentProject = projectsArray.getProject("Important");// delete this in the end
+
+createToDo("Fortnite move!", "where", formattedTodaysDate, "high");
+createToDo("Do nothing?", "what", format(addDays(todaysDate, 9), "yyyy-MM-dd"), "med");
 
 //get each toDoItem in currentProject and display them as taskCards
 function displayToDoItem(item) {
@@ -37,9 +52,10 @@ function displayToDoItem(item) {
     const taskCardText = document.createElement("div");
     taskCardText.classList.add("taskCard-text");
     const taskCardTitle = document.createElement("div");
+
     const taskCardDue = document.createElement("div");
     taskCardTitle.textContent = item.title;
-    taskCardDue.textContent = item.dueDate;
+    taskCardDue.textContent = handleDateChange(item.dueDate);
 
     const taskCardButton = document.createElement("button");
     const unticked = document.createElement("img");
@@ -49,9 +65,9 @@ function displayToDoItem(item) {
     taskCardButton.append(unticked);
 
     // add ".completed-task" class to completed tasks 
-    taskCardButton.addEventListener("click", () => {
+    taskCardButton.addEventListener("click", function(event) {
+        event.stopPropagation();
         taskCard.classList.toggle("completed-task");
-        console.log(taskCard.classList.contains("completed-task"));
         if (taskCard.classList.contains("completed-task")) {
             taskCardButton.innerHTML = "";
             taskCardButton.append(ticked);
@@ -78,6 +94,54 @@ function displayToDoItem(item) {
     taskCardText.append(taskCardDue);
     taskCard.append(taskCardButton, taskCardText);
     tasksDisplay.append(taskCard);
+
+    //add click eventListener to taskCard to open Edit Task modal
+    taskCard.addEventListener("click", () => {
+        const modalHeader = document.querySelector(".modal-header");
+        modalHeader.textContent = "Edit Task";
+
+        //repopulate each form input with the toDo item's properties
+        const titleInput = document.querySelector("#title");
+        titleInput.value = item.title;
+
+        const descInput = document.querySelector("#description");
+        descInput.value = item.desc;
+
+        const dateInput = document.querySelector("#dueDate");
+        dateInput.value = item.dueDate;
+        
+        const radioButtons = document.querySelectorAll("input[name='priority']");
+        radioButtons.forEach(button => {
+            button.checked = (button.value === item.priority);
+        });
+
+        const btnContainer = document.querySelector(".button-container");
+        btnContainer.innerHTML = "";
+        //replace addTask button with delete/save buttons
+        if (!btnContainer.hasChildNodes()) {
+            const deleteTaskBtn = document.createElement("button");
+            const saveChangesBtn = document.createElement("button");
+            deleteTaskBtn.textContent = "Delete Task";
+            saveChangesBtn.textContent = "Save Changes";
+            deleteTaskBtn.classList.add("editTask-button");
+            saveChangesBtn.classList.add("editTask-button");
+
+            //eventListeners for buttons
+            deleteTaskBtn.addEventListener("click", () => {
+                event.preventDefault();
+                projectsArray.projects.forEach(project => {
+                    project.removeTask(item);
+                });
+                taskCard.remove();
+                modalForm.close();
+                updatePendingCount();
+            })
+
+            btnContainer.append(deleteTaskBtn, saveChangesBtn);
+        }
+
+        modalForm.showModal();
+    })
 }
 
 //display a project in the sidebar
@@ -100,21 +164,50 @@ function displayProject(project) {
         title.textContent = project.title;
         tasksDisplay.innerHTML = "";
         currentProject = project;
+        //sort tasks to display closest dueDate on top
+        currentProject.tasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
         currentProject.tasks.forEach(item => displayToDoItem(item));
         //update the pending display number
         updatePendingCount();
     })
+
+    //delete project button
+    const deleteProjectBtn = document.createElement("button");
+    const btnImg = document.createElement("img");
+    btnImg.src = crossImg;
+    
+    deleteProjectBtn.append(btnImg);
+    projectButton.append(img, projectName, deleteProjectBtn);
+    projectsSidebar.append(projectButton);
+
+    //create eventListener to delete project
+        deleteProjectBtn.addEventListener("click", () => {
+        projectButton.remove();
+        projectsArray.removeProject(project);
+        console.log(projectsArray.projects);
+        })
 }
-
-
+//display all projects in sidebar
 projectsArray.projects.forEach(project => displayProject(project));
-
 
 //Add Task + modal functionality
 const addTaskButton = document.querySelector(".addTask-btn");
-const modalForm = document.querySelector(".modal-form");
+addTaskButton.addEventListener("click", () => {
+    const modalHeader = document.querySelector(".modal-header");
+    modalHeader.textContent = "Add Task";
 
-addTaskButton.addEventListener("click", () => modalForm.showModal());
+    const btnContainer = document.querySelector(".button-container");
+    const submitBtn = document.createElement("button");
+    submitBtn.textContent = "Add Task";
+    submitBtn.classList.add("submit-form");
+    //only add the button if btnContainer is empty 
+    if (btnContainer.hasChildNodes()) {
+        btnContainer.innerHTML = "";
+        btnContainer.append(submitBtn);
+    };
+
+    modalForm.showModal()
+});
 
 //make the form submit button export the form info back to this script
 const addTaskForm = document.querySelector("#addTask-form");
@@ -125,18 +218,12 @@ addTaskForm.addEventListener("submit", (event) => {
     const formData = new FormData(addTaskForm);
     const data = Object.fromEntries(formData.entries());
 
-    console.log("Form data:", data);
     currentProject = projectsArray.getProject(data.projectSelector);
     const newToDo = createToDo(data.title, data.description, data.dueDate, data.priority);
-    displayToDoItem(newToDo);
     updatePendingCount();
     //localStorage.setItem("formData", JSON.stringify(formData));   return to this when wanting to add persistent local storage
     addTaskForm.reset();
-});
-
-//close the modal
-submitFormBtn.addEventListener("click", () => {
-    modalForm.close()
+    modalForm.close();
 });
 
 //function to close a modal by clicking outside of it
@@ -150,6 +237,8 @@ function clickOutModal(modal) {
           event.clientY <= rect.bottom;
       
         if (!isInDialog) {
+          projectModalInput.value = "";
+          addTaskForm.reset();
           modal.close();
         }
       });
@@ -157,7 +246,7 @@ function clickOutModal(modal) {
 
 clickOutModal(modalForm);
 
-//add each existing project in projectsArray to the modal's projectSelector dropdown menu
+//add each existing project in projectsArray to the add task modal's projectSelector dropdown menu
 function appendProjectToDropdown(project) {
     const projectSelector = document.querySelector("#projectSelector");
     const projectOption = document.createElement("option");
@@ -195,4 +284,71 @@ closeProjectModalBtn.addEventListener("click", () => {
 });
 
 clickOutModal(projectModal);
+
+//CREATE EVENT LISTENERS FOR TODAY, TOMORROW, THIS WEEK, ALL TASKS SIDEBAR BUTTONS
+const todayBtn = document.querySelector("#today");
+const tomorrowBtn = document.querySelector("#tomorrow");
+const thisWeekBtn = document.querySelector("#this-week")
+const allTasksBtn = document.querySelector("#all");
+
+
+//function that returns all tasks in a single 1D array
+function returnAllTasks() {
+    const allTasks = [];
+    projectsArray.projects.forEach(project => {
+        project.tasks.forEach(task => {
+            allTasks.push(task);
+        });
+    });
+    allTasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    return allTasks;
+}
+
+//function to add eventListeners to each button
+function addTaskBtnEventListener(button, heading, filterFunction) {
+    button.addEventListener("click", () => {
+        const title = document.querySelector(".heading");
+        title.textContent = heading;
+        tasksDisplay.innerHTML = "";
+        const tasks = returnAllTasks();
+        const filteredTasks = tasks.filter(task => filterFunction(task));
+        filteredTasks.forEach(task => displayToDoItem(task));
+        updatePendingCount();
+    });
+}
+
+//TODAY
+function todayFilter(task) {
+    return isSameDay(task.dueDate, todaysDate);
+};
+
+addTaskBtnEventListener(todayBtn, "Today", todayFilter);
+
+//get page to display Today on load
+window.onload = function() {
+    const title = document.querySelector(".heading");
+    title.textContent = "Today";
+    tasksDisplay.innerHTML = "";
+    const tasks = returnAllTasks();
+    const filteredTasks = tasks.filter(task => isSameDay(task.dueDate, todaysDate));
+    filteredTasks.forEach(task => displayToDoItem(task));
+    updatePendingCount();
+  };
+
+//TOMORROW
+function tomorrowFilter(task) {
+    return isSameDay(task.dueDate, addDays(todaysDate, 1));
+};
+
+addTaskBtnEventListener(tomorrowBtn, "Tomorrow", tomorrowFilter);
+
+//THIS WEEK
+function thisWeekFilter(task) {
+    return isWithinInterval(task.dueDate, {start: todaysDate, end: addDays(todaysDate, 7)});
+}
+
+addTaskBtnEventListener(thisWeekBtn, "This Week", thisWeekFilter);
+
+//ALL TASKS
+addTaskBtnEventListener(allTasksBtn, "All Tasks", (item) => item);
 
