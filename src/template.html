@@ -26,11 +26,11 @@
                 <img src="./icons/week.svg" alt="this-week">
                 <span>This Week</span>
             </button>
-            <button class="all">
+            <button id="all">
                 <img src="./icons/all.svg" alt="all-tasks">
                 <span>All Tasks</span>
             </button>
-            <button class="completed">
+            <button id="completed">
                 <img src="./icons/completed.svg" alt="completed-button">
                 <span>Completed</span>
             </button>
@@ -46,7 +46,7 @@
         <dialog class="project-modal">
             <div class="project-modal-container">
                 <div class="project-modal-title">New Project</div>
-                <input type="text" placeholder="Project Name" id="project-modal-input" maxlength="22">
+                <input type="text" placeholder="Project Name" id="project-modal-input" maxlength="18">
 
             <div class="project-modal-buttons">
                 <button class="project-modal-cancel">Cancel</button>
@@ -79,13 +79,13 @@
         <div class="modal-header">New Task</div>
 
         <form method="POST" id="addTask-form">
-            <input type="text" id="title" placeholder="Title" name="title" required>
+            <input type="text" id="title" placeholder="Title" name="title" spellcheck="false" required>
 
-            <textarea id="description" placeholder="Description" name="description" rows="1"></textarea required>
+            <textarea id="description" placeholder="Description" name="description" rows="1" spellcheck="false"></textarea>
             
             <div class="dueDate-container">
                 <label for="dueDate">Due Date</label>
-                <input type="date" id="dueDate" name="dueDate" required>
+                <input type="date" id="dueDate" name="dueDate" onclick="this.showPicker();" required>
             </div>
             <div class="projectSelector-container">
                 <label for="projectSelector">Project</label>
@@ -110,8 +110,10 @@
                     </label>
                 </fieldset>
             </div>
+            <div class="button-container">
+                <button class="submit-form">Add Task</button>
+            </div>
 
-            <button class="submit-form">Add Task</button>
         </form>
         
 
