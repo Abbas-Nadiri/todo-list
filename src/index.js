@@ -12,6 +12,7 @@ export let currentProject = projectsArray.getProject("Default");
 //define initial constants and functions
 const tasksDisplay = document.querySelector(".tasks-display");
 const modalForm = document.querySelector(".modal-form");
+
 function updatePendingCount() {
     const pendingCount = document.querySelector(".pending-count");
     pendingCount.textContent = document.querySelector(".tasks-display").childElementCount
@@ -173,6 +174,7 @@ function displayProject(project) {
 
     //delete project button
     const deleteProjectBtn = document.createElement("button");
+    deleteProjectBtn.classList.add("delete-project-btn");
     const btnImg = document.createElement("img");
     btnImg.src = crossImg;
     
@@ -180,12 +182,22 @@ function displayProject(project) {
     projectButton.append(img, projectName, deleteProjectBtn);
     projectsSidebar.append(projectButton);
 
-    //create eventListener to delete project
-        deleteProjectBtn.addEventListener("click", () => {
+    //create eventListener to delete project (maybe make a "are you sure modal?" and move this there)
+    deleteProjectBtn.addEventListener("click", () => {
+        event.stopPropagation();
         projectButton.remove();
         projectsArray.removeProject(project);
-        console.log(projectsArray.projects);
-        })
+
+        const projectSelector = document.querySelector("#projectSelector");
+        const options = projectSelector.options;
+
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].textContent === project.title) {
+            projectSelector.remove(i);
+            break;
+            }
+        }
+    })
 }
 //display all projects in sidebar
 projectsArray.projects.forEach(project => displayProject(project));
