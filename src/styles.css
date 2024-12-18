@@ -108,6 +108,19 @@ img {
     border-radius: 0.5rem;
 }
 
+.delete-project-btn {
+  background-color: inherit;
+  border: none;
+  cursor: pointer;
+  align-self: center;
+  margin-left: auto;
+}
+
+.delete-project-btn>img {
+  height: 10px;
+  
+}
+
 #add-project {
   order: 99999;
 }
@@ -489,3 +502,4 @@ fieldset {
 .editTask-button:first-of-type:hover {
   background-color: #570000;
 }
+
