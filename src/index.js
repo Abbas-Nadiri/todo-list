@@ -15,7 +15,7 @@ const modalForm = document.querySelector(".modal-form");
 
 function updatePendingCount() {
     const pendingCount = document.querySelector(".pending-count");
-    pendingCount.textContent = document.querySelector(".tasks-display").childElementCount
+    pendingCount.textContent = document.querySelector(".tasks-display").childElementCount;
 };
 
 function toKebabCase(str) {
@@ -33,6 +33,7 @@ function handleDateChange(date) {
     const parsedDate = parseISO(date);
     return format(parsedDate, "dd/MM/yyyy");
 }
+createProject("Completed");
 
 //create dummy toDo items
 createToDo("Tidy room","DO THE THING", format(addDays(todaysDate, 1), "yyyy-MM-dd"), "high");
@@ -53,7 +54,6 @@ function displayToDoItem(item) {
     const taskCardText = document.createElement("div");
     taskCardText.classList.add("taskCard-text");
     const taskCardTitle = document.createElement("div");
-
     const taskCardDue = document.createElement("div");
     taskCardTitle.textContent = item.title;
     taskCardDue.textContent = handleDateChange(item.dueDate);
@@ -111,6 +111,8 @@ function displayToDoItem(item) {
         const dateInput = document.querySelector("#dueDate");
         dateInput.value = item.dueDate;
         
+        const projectSelector = document.querySelector("#projectSelector");
+
         const radioButtons = document.querySelectorAll("input[name='priority']");
         radioButtons.forEach(button => {
             button.checked = (button.value === item.priority);
@@ -136,6 +138,32 @@ function displayToDoItem(item) {
                 taskCard.remove();
                 modalForm.close();
                 updatePendingCount();
+            })
+
+            saveChangesBtn.addEventListener("click", () => {
+                event.preventDefault();
+                item.title = titleInput.value;
+                item.desc = descInput.value;
+                item.dueDate = dateInput.value;
+                //move the project
+                moveTask(item, projectSelector.value);
+
+                //remove border colour to add updated one
+                taskCard.classList.forEach(item => {
+                    if (item != "task-card") {
+                        taskCard.classList.remove(item);
+                    }
+                });
+
+                radioButtons.forEach(button => {
+                    if (button.checked) {
+                        item.priority = button.value;
+                        taskCard.classList.add(button.id);
+                    }
+                });
+                console.log(item.priority);
+                updatePendingCount();
+                modalForm.close();
             })
 
             btnContainer.append(deleteTaskBtn, saveChangesBtn);
@@ -184,7 +212,7 @@ function displayProject(project) {
 
     //create eventListener to delete project (maybe make a "are you sure modal?" and move this there)
     deleteProjectBtn.addEventListener("click", () => {
-        event.stopPropagation();
+        event.stopPropagation(); 
         projectButton.remove();
         projectsArray.removeProject(project);
 
