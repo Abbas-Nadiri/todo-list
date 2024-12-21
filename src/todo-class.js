@@ -4,6 +4,7 @@ export default class ToDoItem{
 		this.desc = desc;
 		this.dueDate = dueDate;
 		this.priority = priority;
+    this.completed = false;
     }
 
     displayItem(){
