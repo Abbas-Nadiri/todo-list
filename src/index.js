@@ -33,7 +33,22 @@ function handleDateChange(date) {
     const parsedDate = parseISO(date);
     return format(parsedDate, "dd/MM/yyyy");
 }
-createProject("Completed");
+
+//create Completed project for completed tasks
+const completedProject = createProject("Completed");
+const completedBtn = document.querySelector("#completed");
+completedBtn.addEventListener("click", () => {
+    const title = document.querySelector(".heading");
+    title.textContent = "Completed";
+    tasksDisplay.innerHTML = "";
+    currentProject = completedProject;
+    //sort tasks to display closest dueDate on top
+    currentProject.tasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    currentProject.tasks.forEach(item => displayToDoItem(item));
+    //update the pending display number
+    updatePendingCount();
+    console.table(completedProject.tasks);
+})
 
 //create dummy toDo items
 createToDo("Tidy room","DO THE THING", format(addDays(todaysDate, 1), "yyyy-MM-dd"), "high");
@@ -50,7 +65,6 @@ createToDo("Do nothing?", "what", format(addDays(todaysDate, 9), "yyyy-MM-dd"), 
 function displayToDoItem(item) {
     const taskCard = document.createElement("div");
     taskCard.classList.add("task-card");
-
     const taskCardText = document.createElement("div");
     taskCardText.classList.add("taskCard-text");
     const taskCardTitle = document.createElement("div");
@@ -63,19 +77,33 @@ function displayToDoItem(item) {
     const ticked = document.createElement("img");
     unticked.src = untickedImg;
     ticked.src = tickedImg;
-    taskCardButton.append(unticked);
+    taskCardButton.append(item.completed ? ticked : unticked);
+
+    if (item.completed) {
+        taskCard.classList.add("completed-task");
+    }
 
     // add ".completed-task" class to completed tasks 
     taskCardButton.addEventListener("click", function(event) {
         event.stopPropagation();
-        taskCard.classList.toggle("completed-task");
-        if (taskCard.classList.contains("completed-task")) {
-            taskCardButton.innerHTML = "";
-            taskCardButton.append(ticked);
+        item.completed = !item.completed;
+
+        if (item.completed) {
+            completedProject.addTask(item);  // Add to completedProject
         } else {
-            taskCardButton.innerHTML = "";
-            taskCardButton.append(unticked);
-        };
+            // If the task is not completed, remove it from the completedProject
+            completedProject.removeTask(item); // Use your built-in removeTask method
+        }
+
+        taskCard.classList.toggle("completed-task");
+        taskCardButton.innerHTML = ""; // Update button
+        taskCardButton.append(item.completed ? ticked : unticked);
+
+
+        //remove taskCard from current tasksDisplay
+        taskCard.remove();
+        updatePendingCount();
+        console.table(completedProject.tasks);
     })
 
     //change border colour depending on priority (might have to move somewhere else if colour not changing after prio changes)
@@ -195,9 +223,15 @@ function displayProject(project) {
         currentProject = project;
         //sort tasks to display closest dueDate on top
         currentProject.tasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
-        currentProject.tasks.forEach(item => displayToDoItem(item));
+        currentProject.tasks.forEach(item => {
+            if (item.completed) {
+                return;
+            }
+            displayToDoItem(item);
+        });
         //update the pending display number
         updatePendingCount();
+        console.log(project.tasks);
     })
 
     //delete project button
@@ -228,7 +262,12 @@ function displayProject(project) {
     })
 }
 //display all projects in sidebar
-projectsArray.projects.forEach(project => displayProject(project));
+projectsArray.projects.forEach(project => {
+    if (project.title === "Completed") {
+        return;
+    }
+    displayProject(project);
+} );
 
 //Add Task + modal functionality
 const addTaskButton = document.querySelector(".addTask-btn");
@@ -296,7 +335,12 @@ function appendProjectToDropdown(project) {
     projectSelector.append(projectOption);
 };
 
-projectsArray.projects.forEach(project => appendProjectToDropdown(project));
+projectsArray.projects.forEach(project => {
+    if(project.title === "Completed") {
+        return;
+    }
+    appendProjectToDropdown(project)
+});
 
 //Add Project modal functionality
 const addProjectBtn = document.querySelector("#add-project");
@@ -336,6 +380,9 @@ const allTasksBtn = document.querySelector("#all");
 function returnAllTasks() {
     const allTasks = [];
     projectsArray.projects.forEach(project => {
+        if (project.title === "Completed") {
+            return;
+        }
         project.tasks.forEach(task => {
             allTasks.push(task);
         });
@@ -348,15 +395,26 @@ function returnAllTasks() {
 function addTaskBtnEventListener(button, heading, filterFunction) {
     button.addEventListener("click", () => {
         const title = document.querySelector(".heading");
+        const completedCount = document.querySelector(".pending-count");
+        //how do i fix this
         title.textContent = heading;
         tasksDisplay.innerHTML = "";
         const tasks = returnAllTasks();
+        let counter = 0;
         const filteredTasks = tasks.filter(task => filterFunction(task));
-        filteredTasks.forEach(task => displayToDoItem(task));
+        filteredTasks.forEach(task => {
+            if (!task.completed) {
+            displayToDoItem(task);
+            } else {
+                counter++;
+                completedCount.textContent = counter;
+            }
+        });
         updatePendingCount();
+        //except completed
     });
 }
-
+    
 //TODAY
 function todayFilter(task) {
     return isSameDay(task.dueDate, todaysDate);
