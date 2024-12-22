@@ -12,11 +12,9 @@ export let currentProject = projectsArray.getProject("Default");
 //define initial constants and functions
 const tasksDisplay = document.querySelector(".tasks-display");
 const modalForm = document.querySelector(".modal-form");
-
-function updatePendingCount() {
-    const pendingCount = document.querySelector(".pending-count");
-    pendingCount.textContent = document.querySelector(".tasks-display").childElementCount;
-};
+const pendingDisplay = document.querySelector(".pending-display");
+const title = document.querySelector(".heading");
+let lastClickedButton = null;
 
 function toKebabCase(str) {
     return str
@@ -27,28 +25,12 @@ function toKebabCase(str) {
 //get today's date
 const todaysDate = startOfDay(new Date());
 const formattedTodaysDate = format(todaysDate, "yyyy-MM-dd");
-
 //convert dates from ISO format into DD/MM/YYYY
 function handleDateChange(date) {
     const parsedDate = parseISO(date);
     return format(parsedDate, "dd/MM/yyyy");
 }
 
-//create Completed project for completed tasks
-const completedProject = createProject("Completed");
-const completedBtn = document.querySelector("#completed");
-completedBtn.addEventListener("click", () => {
-    const title = document.querySelector(".heading");
-    title.textContent = "Completed";
-    tasksDisplay.innerHTML = "";
-    currentProject = completedProject;
-    //sort tasks to display closest dueDate on top
-    currentProject.tasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
-    currentProject.tasks.forEach(item => displayToDoItem(item));
-    //update the pending display number
-    updatePendingCount();
-    console.table(completedProject.tasks);
-})
 
 //create dummy toDo items
 createToDo("Tidy room","DO THE THING", format(addDays(todaysDate, 1), "yyyy-MM-dd"), "high");
@@ -60,6 +42,143 @@ currentProject = projectsArray.getProject("Important");// delete this in the end
 
 createToDo("Fortnite move!", "where", formattedTodaysDate, "high");
 createToDo("Do nothing?", "what", format(addDays(todaysDate, 9), "yyyy-MM-dd"), "med");
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+function updatePendingCount() {
+    const pendingCount = document.querySelector(".pending-count");
+    pendingCount.textContent = document.querySelector(".tasks-display").childElementCount;
+};
+
+function updateCompletedCount() {
+    const completedCount = document.querySelector(".completed-count");
+    let count = 0;
+    completedCount.textContent = count;
+    currentProject.tasks.forEach(task => {
+        if (task.completed) {
+            count++;
+            completedCount.textContent = count;
+        }
+    })
+}
+
+//function that returns all incomplete tasks in a single 1D array
+function returnAllTasks() {
+    const allTasks = []; // the issue is once tasks are added to here how can i remove them?
+    projectsArray.projects.forEach(project => {
+        if (!project.display) {
+            return;
+        }
+        project.tasks.forEach(task => {
+            allTasks.push(task);
+        });
+    });
+    allTasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    return allTasks;
+}
+
+//TODAY
+function todayFilter(task) {
+    return isSameDay(task.dueDate, todaysDate);
+};
+//TOMORROW
+function tomorrowFilter(task) {
+    return isSameDay(task.dueDate, addDays(todaysDate, 1));
+};
+//THIS WEEK
+function thisWeekFilter(task) {
+    return isWithinInterval(task.dueDate, {start: todaysDate, end: addDays(todaysDate, 7)});
+}
+
+//function that filters all incomplete tasks with a given filter
+function filterAllTasks(filterFunction) {
+    const allTasks = returnAllTasks();
+    return allTasks.filter(task => filterFunction(task));
+}
+
+//CREATE PROJECTS + EVENT LISTENERS FOR TODAY, TOMORROW, THIS WEEK, ALL TASKS SIDEBAR BUTTON
+function addListenerToTasksBtn(button, heading, project, filter) {
+    button.addEventListener("click", () => {
+        pendingDisplay.classList.remove("hidden");
+        title.textContent = heading;
+        tasksDisplay.innerHTML = "";
+        currentProject = project;
+        currentProject.tasks = [];
+        const filteredTasks = filterAllTasks(filter);
+        filteredTasks.forEach(task => currentProject.addTask(task));
+        currentProject.tasks.forEach(task => {
+            if (!task.completed) {
+                displayToDoItem(task);
+            };
+        });
+        //update the pending/completed display numbers
+        updatePendingCount();
+        updateCompletedCount();
+    })
+}
+
+const todayBtn = document.querySelector("#today");
+const todayProject = createProject("Today");
+todayProject.display = false;
+
+//get page to display Today on load
+window.onload = function() {
+    pendingDisplay.classList.remove("hidden");
+    title.textContent = "Today";
+    tasksDisplay.innerHTML = "";
+    currentProject = todayProject;
+    currentProject.tasks = [];
+    const filteredTasks = filterAllTasks(todayFilter);
+    filteredTasks.forEach(task => currentProject.addTask(task));
+    currentProject.tasks.forEach(task => {
+        if (!task.completed) {
+            displayToDoItem(task);
+        };
+    });
+    //update the pending/completed display numbers
+    updatePendingCount();
+    updateCompletedCount();
+};
+
+addListenerToTasksBtn(todayBtn, "Today", todayProject, todayFilter);
+
+const tomorrowBtn = document.querySelector("#tomorrow");
+const tomorrowProject = createProject("Tomorrow");
+tomorrowProject.display = false;
+
+addListenerToTasksBtn(tomorrowBtn, "Tomorrow", tomorrowProject, tomorrowFilter);
+
+const thisWeekBtn = document.querySelector("#this-week");
+const thisWeekProject = createProject("This Week");
+thisWeekProject.display = false;
+
+addListenerToTasksBtn(thisWeekBtn, "This Week", thisWeekProject, thisWeekFilter);
+
+const allTasksBtn = document.querySelector("#all");
+const allTasksProject = createProject("All Tasks");
+allTasksProject.display = false;
+
+addListenerToTasksBtn(allTasksBtn, "All Tasks", allTasksProject, (task) => task);
+
+//create "Completed" project for completed tasks
+const completedProject = createProject("Completed");
+const completedBtn = document.querySelector("#completed");
+completedProject.display = false;
+
+completedBtn.addEventListener("click", () => {
+    title.textContent = "Completed";
+    pendingDisplay.classList.add("hidden");
+    tasksDisplay.innerHTML = "";
+    currentProject = completedProject;
+    //sort tasks to display closest dueDate on top
+    currentProject.tasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    currentProject.tasks.forEach(item => displayToDoItem(item));
+    //update the pending display number
+    updatePendingCount();
+    updateCompletedCount();
+})
 
 //get each toDoItem in currentProject and display them as taskCards
 function displayToDoItem(item) {
@@ -103,7 +222,8 @@ function displayToDoItem(item) {
         //remove taskCard from current tasksDisplay
         taskCard.remove();
         updatePendingCount();
-        console.table(completedProject.tasks);
+
+        updateCompletedCount();
     })
 
     //change border colour depending on priority (might have to move somewhere else if colour not changing after prio changes)
@@ -140,6 +260,7 @@ function displayToDoItem(item) {
         dateInput.value = item.dueDate;
         
         const projectSelector = document.querySelector("#projectSelector");
+        projectSelector.value = projectsArray.projects.find(project => project.tasks.includes(item))?.title || "Default";
 
         const radioButtons = document.querySelectorAll("input[name='priority']");
         radioButtons.forEach(button => {
@@ -166,6 +287,8 @@ function displayToDoItem(item) {
                 taskCard.remove();
                 modalForm.close();
                 updatePendingCount();
+                
+                updateCompletedCount();
             })
 
             saveChangesBtn.addEventListener("click", () => {
@@ -189,8 +312,8 @@ function displayToDoItem(item) {
                         taskCard.classList.add(button.id);
                     }
                 });
-                console.log(item.priority);
                 updatePendingCount();
+                updateCompletedCount();
                 modalForm.close();
             })
 
@@ -217,7 +340,7 @@ function displayProject(project) {
     //create eventListener for project button
 
     projectButton.addEventListener("click", () => {
-        const title = document.querySelector(".heading");
+        lastClickedButton = projectButton;
         title.textContent = project.title;
         tasksDisplay.innerHTML = "";
         currentProject = project;
@@ -230,8 +353,9 @@ function displayProject(project) {
             displayToDoItem(item);
         });
         //update the pending display number
+        pendingDisplay.classList.remove("hidden");
         updatePendingCount();
-        console.log(project.tasks);
+        updateCompletedCount();
     })
 
     //delete project button
@@ -244,7 +368,7 @@ function displayProject(project) {
     projectButton.append(img, projectName, deleteProjectBtn);
     projectsSidebar.append(projectButton);
 
-    //create eventListener to delete project (maybe make a "are you sure modal?" and move this there)
+    //create eventListener to delete project (maybe make a "are you sure modal?") cba
     deleteProjectBtn.addEventListener("click", () => {
         event.stopPropagation(); 
         projectButton.remove();
@@ -259,11 +383,17 @@ function displayProject(project) {
             break;
             }
         }
+
+        
+
     })
+    return projectButton;
 }
+
+
 //display all projects in sidebar
 projectsArray.projects.forEach(project => {
-    if (project.title === "Completed") {
+    if (!project.display) {
         return;
     }
     displayProject(project);
@@ -285,12 +415,13 @@ addTaskButton.addEventListener("click", () => {
         btnContainer.append(submitBtn);
     };
 
-    modalForm.showModal()
+    modalForm.showModal();
+    const projectSelector = document.querySelector("#projectSelector");
+    projectSelector.value = currentProject.title ? currentProject.title : "Default";
 });
 
 //make the form submit button export the form info back to this script
 const addTaskForm = document.querySelector("#addTask-form");
-const submitFormBtn = document.querySelector(".submit-form");
 
 addTaskForm.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -303,6 +434,26 @@ addTaskForm.addEventListener("submit", (event) => {
     //localStorage.setItem("formData", JSON.stringify(formData));   return to this when wanting to add persistent local storage
     addTaskForm.reset();
     modalForm.close();
+    //click the button of the page currently being displayed to refresh the display
+    switch (title.textContent) {
+        case "Today":
+            todayBtn.click();
+            break; 
+        case "Tomorrow":
+            tomorrowBtn.click();
+            break; 
+        case "This Week":
+            thisWeekBtn.click();
+            break; 
+        case "All Tasks":
+        allTasksBtn.click();
+            break; 
+        default:
+            if (lastClickedButton) {
+                lastClickedButton.click();
+            }
+            break;
+    }
 });
 
 //function to close a modal by clicking outside of it
@@ -336,7 +487,7 @@ function appendProjectToDropdown(project) {
 };
 
 projectsArray.projects.forEach(project => {
-    if(project.title === "Completed") {
+    if(!project.display) {
         return;
     }
     appendProjectToDropdown(project)
@@ -368,85 +519,3 @@ closeProjectModalBtn.addEventListener("click", () => {
 });
 
 clickOutModal(projectModal);
-
-//CREATE EVENT LISTENERS FOR TODAY, TOMORROW, THIS WEEK, ALL TASKS SIDEBAR BUTTONS
-const todayBtn = document.querySelector("#today");
-const tomorrowBtn = document.querySelector("#tomorrow");
-const thisWeekBtn = document.querySelector("#this-week")
-const allTasksBtn = document.querySelector("#all");
-
-
-//function that returns all tasks in a single 1D array
-function returnAllTasks() {
-    const allTasks = [];
-    projectsArray.projects.forEach(project => {
-        if (project.title === "Completed") {
-            return;
-        }
-        project.tasks.forEach(task => {
-            allTasks.push(task);
-        });
-    });
-    allTasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
-    return allTasks;
-}
-
-//function to add eventListeners to each button
-function addTaskBtnEventListener(button, heading, filterFunction) {
-    button.addEventListener("click", () => {
-        const title = document.querySelector(".heading");
-        const completedCount = document.querySelector(".pending-count");
-        //how do i fix this
-        title.textContent = heading;
-        tasksDisplay.innerHTML = "";
-        const tasks = returnAllTasks();
-        let counter = 0;
-        const filteredTasks = tasks.filter(task => filterFunction(task));
-        filteredTasks.forEach(task => {
-            if (!task.completed) {
-            displayToDoItem(task);
-            } else {
-                counter++;
-                completedCount.textContent = counter;
-            }
-        });
-        updatePendingCount();
-        //except completed
-    });
-}
-    
-//TODAY
-function todayFilter(task) {
-    return isSameDay(task.dueDate, todaysDate);
-};
-
-addTaskBtnEventListener(todayBtn, "Today", todayFilter);
-
-//get page to display Today on load
-window.onload = function() {
-    const title = document.querySelector(".heading");
-    title.textContent = "Today";
-    tasksDisplay.innerHTML = "";
-    const tasks = returnAllTasks();
-    const filteredTasks = tasks.filter(task => isSameDay(task.dueDate, todaysDate));
-    filteredTasks.forEach(task => displayToDoItem(task));
-    updatePendingCount();
-  };
-
-//TOMORROW
-function tomorrowFilter(task) {
-    return isSameDay(task.dueDate, addDays(todaysDate, 1));
-};
-
-addTaskBtnEventListener(tomorrowBtn, "Tomorrow", tomorrowFilter);
-
-//THIS WEEK
-function thisWeekFilter(task) {
-    return isWithinInterval(task.dueDate, {start: todaysDate, end: addDays(todaysDate, 7)});
-}
-
-addTaskBtnEventListener(thisWeekBtn, "This Week", thisWeekFilter);
-
-//ALL TASKS
-addTaskBtnEventListener(allTasksBtn, "All Tasks", (item) => item);
-
