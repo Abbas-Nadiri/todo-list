@@ -118,7 +118,12 @@ img {
 
 .delete-project-btn>img {
   height: 10px;
-  
+}
+
+.delete-project-btn>img:hover {
+  filter: invert(1);
+  height: 11px;
+  transition: 0.1s;
 }
 
 #add-project {
@@ -503,3 +508,6 @@ fieldset {
   background-color: #570000;
 }
 
+.hidden {
+  display: none;
+}
