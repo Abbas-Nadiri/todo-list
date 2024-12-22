@@ -6,6 +6,8 @@ import ToDoItem from "./todo-class";
     constructor(title, tasks = []){
         this.title = title;
         this.tasks = tasks;
+        this.display = true;
+
     }
 
     getTask(taskTitle) {
