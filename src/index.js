@@ -35,12 +35,13 @@ function handleDateChange(date) {
 //create dummy toDo items
 createToDo("Tidy room","DO THE THING", format(addDays(todaysDate, 1), "yyyy-MM-dd"), "high");
 createToDo("Make a morbillion dollars", "wowie", format(addDays(todaysDate, 6), "yyyy-MM-dd"), "med");
-createToDo("Do it again", "how", formattedTodaysDate, "low");
+createToDo("Fortnite move!", "where", formattedTodaysDate, "high");
+
 //create dummy project
 createProject("Important");
 currentProject = projectsArray.getProject("Important");// delete this in the end
 
-createToDo("Fortnite move!", "where", formattedTodaysDate, "high");
+createToDo("Do it again", "how", formattedTodaysDate, "low");
 createToDo("Do nothing?", "what", format(addDays(todaysDate, 9), "yyyy-MM-dd"), "med");
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -245,83 +246,85 @@ function displayToDoItem(item) {
     tasksDisplay.append(taskCard);
 
     //add click eventListener to taskCard to open Edit Task modal
-    taskCard.addEventListener("click", () => {
-        const modalHeader = document.querySelector(".modal-header");
-        modalHeader.textContent = "Edit Task";
+    if (currentProject != completedProject) {
+        taskCard.addEventListener("click", () => {
+            const modalHeader = document.querySelector(".modal-header");
+            modalHeader.textContent = "Edit Task";
 
-        //repopulate each form input with the toDo item's properties
-        const titleInput = document.querySelector("#title");
-        titleInput.value = item.title;
+            //repopulate each form input with the toDo item's properties
+            const titleInput = document.querySelector("#title");
+            titleInput.value = item.title;
 
-        const descInput = document.querySelector("#description");
-        descInput.value = item.desc;
+            const descInput = document.querySelector("#description");
+            descInput.value = item.desc;
 
-        const dateInput = document.querySelector("#dueDate");
-        dateInput.value = item.dueDate;
-        
-        const projectSelector = document.querySelector("#projectSelector");
-        projectSelector.value = projectsArray.projects.find(project => project.tasks.includes(item))?.title || "Default";
+            const dateInput = document.querySelector("#dueDate");
+            dateInput.value = item.dueDate;
+            
+            const projectSelector = document.querySelector("#projectSelector");
+            projectSelector.value = projectsArray.projects.find(project => project.tasks.includes(item))?.title || "Default";
 
-        const radioButtons = document.querySelectorAll("input[name='priority']");
-        radioButtons.forEach(button => {
-            button.checked = (button.value === item.priority);
-        });
+            const radioButtons = document.querySelectorAll("input[name='priority']");
+            radioButtons.forEach(button => {
+                button.checked = (button.value === item.priority);
+            });
 
-        const btnContainer = document.querySelector(".button-container");
-        btnContainer.innerHTML = "";
-        //replace addTask button with delete/save buttons
-        if (!btnContainer.hasChildNodes()) {
-            const deleteTaskBtn = document.createElement("button");
-            const saveChangesBtn = document.createElement("button");
-            deleteTaskBtn.textContent = "Delete Task";
-            saveChangesBtn.textContent = "Save Changes";
-            deleteTaskBtn.classList.add("editTask-button");
-            saveChangesBtn.classList.add("editTask-button");
+            const btnContainer = document.querySelector(".button-container");
+            btnContainer.innerHTML = "";
+            //replace addTask button with delete/save buttons
+            if (!btnContainer.hasChildNodes()) {
+                const deleteTaskBtn = document.createElement("button");
+                const saveChangesBtn = document.createElement("button");
+                deleteTaskBtn.textContent = "Delete Task";
+                saveChangesBtn.textContent = "Save Changes";
+                deleteTaskBtn.classList.add("editTask-button");
+                saveChangesBtn.classList.add("editTask-button");
 
-            //eventListeners for buttons
-            deleteTaskBtn.addEventListener("click", () => {
-                event.preventDefault();
-                projectsArray.projects.forEach(project => {
-                    project.removeTask(item);
-                });
-                taskCard.remove();
-                modalForm.close();
-                updatePendingCount();
-                
-                updateCompletedCount();
-            })
+                //eventListeners for buttons
+                deleteTaskBtn.addEventListener("click", () => {
+                    event.preventDefault();
+                    projectsArray.projects.forEach(project => {
+                        project.removeTask(item);
+                    });
+                    taskCard.remove();
+                    modalForm.close();
+                    updatePendingCount();
+                    
+                    updateCompletedCount();
+                })
 
-            saveChangesBtn.addEventListener("click", () => {
-                event.preventDefault();
-                item.title = titleInput.value;
-                item.desc = descInput.value;
-                item.dueDate = dateInput.value;
-                //move the project
-                moveTask(item, projectSelector.value);
+                saveChangesBtn.addEventListener("click", () => {
+                    event.preventDefault();
+                    item.title = titleInput.value;
+                    item.desc = descInput.value;
+                    item.dueDate = dateInput.value;
+                    //move the project
+                    moveTask(item, projectSelector.value);
 
-                //remove border colour to add updated one
-                taskCard.classList.forEach(item => {
-                    if (item != "task-card") {
-                        taskCard.classList.remove(item);
-                    }
-                });
+                    //remove border colour to add updated one
+                    taskCard.classList.forEach(item => {
+                        if (item != "task-card") {
+                            taskCard.classList.remove(item);
+                        }
+                    });
 
-                radioButtons.forEach(button => {
-                    if (button.checked) {
-                        item.priority = button.value;
-                        taskCard.classList.add(button.id);
-                    }
-                });
-                updatePendingCount();
-                updateCompletedCount();
-                modalForm.close();
-            })
+                    radioButtons.forEach(button => {
+                        if (button.checked) {
+                            item.priority = button.value;
+                            taskCard.classList.add(button.id);
+                        }
+                    });
+                    updatePendingCount();
+                    updateCompletedCount();
+                    modalForm.close();
+                })
 
-            btnContainer.append(deleteTaskBtn, saveChangesBtn);
-        }
+                btnContainer.append(deleteTaskBtn, saveChangesBtn);
+            }
 
-        modalForm.showModal();
-    })
+            modalForm.showModal();
+        })
+    }
 }
 
 //display a project in the sidebar
