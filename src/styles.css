@@ -118,16 +118,27 @@ img {
 
 .delete-project-btn>img {
   height: 10px;
+  transition: transform 0.3s ease;
 }
 
 .delete-project-btn>img:hover {
   filter: invert(1);
   height: 11px;
-  transition: 0.1s;
+
+  transform: rotate(90deg);
 }
+.delete-project-btn>img:hover
 
 #add-project {
   order: 99999;
+}
+
+#add-project > img {
+  transition: transform 0.3s ease;
+}
+
+#add-project:hover > img {
+  transform: rotate(90deg);
 }
 
 .project-modal {
@@ -327,6 +338,12 @@ img {
 
 .addTask-btn>img {
   height: 0.9rem;
+  transition: transform 0.3s ease; 
+}
+
+.addTask-btn:hover>img {
+  height: 0.9rem;
+  transform: rotate(90deg);
 }
 
 .addTask-btn>div {
