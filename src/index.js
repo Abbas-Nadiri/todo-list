@@ -14,7 +14,7 @@ const tasksDisplay = document.querySelector(".tasks-display");
 const modalForm = document.querySelector(".modal-form");
 const pendingDisplay = document.querySelector(".pending-display");
 const title = document.querySelector(".heading");
-let lastClickedButton = null;
+
 
 function toKebabCase(str) {
     return str
@@ -65,9 +65,9 @@ function updateCompletedCount() {
     })
 }
 
-//function that returns all incomplete tasks in a single 1D array
+//function that returns all incomplete project tasks in a single 1D array
 function returnAllTasks() {
-    const allTasks = []; // the issue is once tasks are added to here how can i remove them?
+    const allTasks = []; 
     projectsArray.projects.forEach(project => {
         if (!project.display) {
             return;
@@ -102,6 +102,7 @@ function filterAllTasks(filterFunction) {
 //CREATE PROJECTS + EVENT LISTENERS FOR TODAY, TOMORROW, THIS WEEK, ALL TASKS SIDEBAR BUTTON
 function addListenerToTasksBtn(button, heading, project, filter) {
     button.addEventListener("click", () => {
+        lastClickedButton = button;
         pendingDisplay.classList.remove("hidden");
         title.textContent = heading;
         tasksDisplay.innerHTML = "";
@@ -123,6 +124,7 @@ function addListenerToTasksBtn(button, heading, project, filter) {
 const todayBtn = document.querySelector("#today");
 const todayProject = createProject("Today");
 todayProject.display = false;
+let lastClickedButton = todayBtn;
 
 //get page to display Today on load
 window.onload = function() {
@@ -181,6 +183,18 @@ completedBtn.addEventListener("click", () => {
     updateCompletedCount();
 })
 
+
+//function to retrieve toDo items' original location, not their reference in allTasks
+export function getOriginalProject(task) {
+    const projects = projectsArray.projects.filter (project => project.display == true);
+    return projects.find(project => project.tasks.includes(task));
+}
+
+function getOriginalTask(task) {
+    const filteredProjects = projectsArray.projects.filter (project => project.display == true);
+    const project = filteredProjects.find(project => project.tasks.includes(task));
+}
+
 //get each toDoItem in currentProject and display them as taskCards
 function displayToDoItem(item) {
     const taskCard = document.createElement("div");
@@ -211,8 +225,7 @@ function displayToDoItem(item) {
         if (item.completed) {
             completedProject.addTask(item);  // Add to completedProject
         } else {
-            // If the task is not completed, remove it from the completedProject
-            completedProject.removeTask(item); // Use your built-in removeTask method
+            completedProject.removeTask(item);
         }
 
         taskCard.classList.toggle("completed-task");
@@ -248,6 +261,8 @@ function displayToDoItem(item) {
     //add click eventListener to taskCard to open Edit Task modal
     if (currentProject != completedProject) {
         taskCard.addEventListener("click", () => {
+            
+            console.log(item.getContainingProject());
             const modalHeader = document.querySelector(".modal-header");
             modalHeader.textContent = "Edit Task";
 
@@ -295,16 +310,22 @@ function displayToDoItem(item) {
 
                 saveChangesBtn.addEventListener("click", () => {
                     event.preventDefault();
+
+                    const originalProject = getOriginalProject(item);
+                    //const originalTask = getOriginalTask(item);
                     item.title = titleInput.value;
                     item.desc = descInput.value;
                     item.dueDate = dateInput.value;
-                    //move the project
-                    moveTask(item, projectSelector.value);
+
+                    const newProjectTitle = projectSelector.value;
+                    if (originalProject.title !== newProjectTitle) {
+                        moveTask(item, newProjectTitle);
+                    }
 
                     //remove border colour to add updated one
-                    taskCard.classList.forEach(item => {
-                        if (item != "task-card") {
-                            taskCard.classList.remove(item);
+                    taskCard.classList.forEach(existingClass => {
+                        if (existingClass !== "task-card") {
+                            taskCard.classList.remove(existingClass);
                         }
                     });
 
@@ -317,9 +338,11 @@ function displayToDoItem(item) {
                     updatePendingCount();
                     updateCompletedCount();
                     modalForm.close();
+                    lastClickedButton.click();
                 })
 
                 btnContainer.append(deleteTaskBtn, saveChangesBtn);
+                
             }
 
             modalForm.showModal();
@@ -402,6 +425,8 @@ projectsArray.projects.forEach(project => {
     displayProject(project);
 } );
 
+const addTaskForm = document.querySelector("#addTask-form");
+
 //Add Task + modal functionality
 const addTaskButton = document.querySelector(".addTask-btn");
 addTaskButton.addEventListener("click", () => {
@@ -423,8 +448,29 @@ addTaskButton.addEventListener("click", () => {
     projectSelector.value = currentProject.title ? currentProject.title : "Default";
 });
 
-//make the form submit button export the form info back to this script
-const addTaskForm = document.querySelector("#addTask-form");
+//make the Edit Task and Add Task modals attempt to submit when Enter is pressed on keyboard
+addTaskForm.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+        event.preventDefault();
+
+        const modalHeader = document.querySelector(".modal-header").textContent;
+        const btnContainer = document.querySelector(".button-container");
+
+        if (modalHeader === "Add Task") {
+            if (addTaskForm.checkValidity()) {
+                // Programmatically trigger the submit event
+                addTaskForm.dispatchEvent(new Event("submit", { bubbles: true }));
+            } else {
+                addTaskForm.reportValidity(); // Show validation errors
+            };
+        } else if (modalHeader === "Edit Task") {
+            const saveChangesButton = btnContainer.querySelector(".editTask-button:nth-child(2)");
+            if (saveChangesButton) {
+                saveChangesButton.click()
+            };
+        }
+    }
+});
 
 addTaskForm.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -432,7 +478,7 @@ addTaskForm.addEventListener("submit", (event) => {
     const data = Object.fromEntries(formData.entries());
 
     currentProject = projectsArray.getProject(data.projectSelector);
-    const newToDo = createToDo(data.title, data.description, data.dueDate, data.priority);
+    createToDo(data.title, data.description, data.dueDate, data.priority);
     updatePendingCount();
     //localStorage.setItem("formData", JSON.stringify(formData));   return to this when wanting to add persistent local storage
     addTaskForm.reset();
@@ -522,3 +568,13 @@ closeProjectModalBtn.addEventListener("click", () => {
 });
 
 clickOutModal(projectModal);
+
+//make the project modal button fire when enter pressed
+projectModal.addEventListener("keydown", (event) => {
+    if(projectModal.open && event.key === "Enter") {
+        event.preventDefault();
+        console.log("shaboing!!")
+        createProjectButton.click();
+        addProjectBtn.focus();
+    }
+})
