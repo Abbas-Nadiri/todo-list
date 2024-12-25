@@ -1,5 +1,6 @@
-import { currentProject } from "./index";
+import { currentProject, getOriginalProject } from "./index";
 import ToDoItem from "./todo-class";
+
 
 //class for creating project objects to store tasks
  export default class Project{
@@ -71,9 +72,10 @@ export function removeProject(project) {
 }
 
 export function moveTask(task, destination) {
-    task.getContainingProject().removeTask(task);
+    getOriginalProject(task).removeTask(task);
     projectsArray.getProject(destination).addTask(task);
 }
+
 //maybe needs to be refactored once DOM stuff is implemented
 export function createToDo(title, desc, dueDate, priority) {
     const item = new ToDoItem(title, desc, dueDate, priority);
