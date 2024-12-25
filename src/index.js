@@ -7,9 +7,10 @@ import folderImg from "./icons/folder-open-outline.svg";
 import crossImg from "./icons/cross.svg";
 import { format, parseISO, isWithinInterval, addDays, startOfDay, isSameDay } from "date-fns";
 
-export let currentProject = projectsArray.getProject("Default");
+export let currentProject = null;
 
 //define initial constants and functions
+
 const tasksDisplay = document.querySelector(".tasks-display");
 const modalForm = document.querySelector(".modal-form");
 const pendingDisplay = document.querySelector(".pending-display");
@@ -31,21 +32,41 @@ function handleDateChange(date) {
     return format(parsedDate, "dd/MM/yyyy");
 }
 
+//function to save projectsArray to localStorage
+function saveToLocalStorage() {
+    localStorage.setItem("projectsArray", JSON.stringify(projectsArray));
+}
 
-//create dummy toDo items
-createToDo("Tidy room","DO THE THING", format(addDays(todaysDate, 1), "yyyy-MM-dd"), "high");
-createToDo("Make a morbillion dollars", "wowie", format(addDays(todaysDate, 6), "yyyy-MM-dd"), "med");
-createToDo("Fortnite move!", "where", formattedTodaysDate, "high");
+//load localStorage projectsArray and populate
+document.addEventListener("DOMContentLoaded", (event) => {
+    const savedProjects = localStorage.getItem("projectsArray");
+    if (savedProjects) {
+        const parsedProjects = JSON.parse(savedProjects);
+        const filteredProjects = parsedProjects.projects.filter(project => project.display === true);
+        filteredProjects.forEach(item => {
+            const newProject = createProject(item.title);
+            newProject.tasks = item.tasks;
+            displayProject(newProject);
+            appendProjectToDropdown(newProject);
+        })
+    }
+    const userCreatedProjects = projectsArray.projects.filter(project => project.display === true);
+    //if no projects and first time on page, create Default project
+    if (!projectsArray.projects.find(project => project.title === "Default") && !userCreatedProjects.length && !localStorage.length) {
+        const defaultProject = createProject("Default");
+        currentProject = defaultProject;
+        createToDo("Tidy room","DO THE THING", format(addDays(todaysDate, 1), "yyyy-MM-dd"), "med");
+        createToDo("Make a morbillion dollars", "wowie", format(addDays(todaysDate, 6), "yyyy-MM-dd"), "high");
+        createToDo("Fortnite move!", "where", formattedTodaysDate, "high");
+        createToDo("Do it again", "how", formattedTodaysDate, "low");
+        createToDo("Do nothing?", "what", format(addDays(todaysDate, 9), "yyyy-MM-dd"), "med");
+        displayProject(defaultProject);
+    }
+    todayBtn.click();
+})
 
-//create dummy project
-createProject("Important");
-currentProject = projectsArray.getProject("Important");// delete this in the end
-
-createToDo("Do it again", "how", formattedTodaysDate, "low");
-createToDo("Do nothing?", "what", format(addDays(todaysDate, 9), "yyyy-MM-dd"), "med");
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 
 function updatePendingCount() {
@@ -175,9 +196,14 @@ completedBtn.addEventListener("click", () => {
     pendingDisplay.classList.add("hidden");
     tasksDisplay.innerHTML = "";
     currentProject = completedProject;
-    //sort tasks to display closest dueDate on top
-    currentProject.tasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
-    currentProject.tasks.forEach(item => displayToDoItem(item));
+    currentProject.tasks = [];
+    const allTasks = returnAllTasks();
+    allTasks.forEach(task => {
+        if (task.completed) {
+            currentProject.addTask(task)
+            displayToDoItem(task);
+        };
+    });
     //update the pending display number
     updatePendingCount();
     updateCompletedCount();
@@ -188,11 +214,6 @@ completedBtn.addEventListener("click", () => {
 export function getOriginalProject(task) {
     const projects = projectsArray.projects.filter (project => project.display == true);
     return projects.find(project => project.tasks.includes(task));
-}
-
-function getOriginalTask(task) {
-    const filteredProjects = projectsArray.projects.filter (project => project.display == true);
-    const project = filteredProjects.find(project => project.tasks.includes(task));
 }
 
 //get each toDoItem in currentProject and display them as taskCards
@@ -236,8 +257,8 @@ function displayToDoItem(item) {
         //remove taskCard from current tasksDisplay
         taskCard.remove();
         updatePendingCount();
-
         updateCompletedCount();
+        saveToLocalStorage();
     })
 
     //change border colour depending on priority (might have to move somewhere else if colour not changing after prio changes)
@@ -261,8 +282,6 @@ function displayToDoItem(item) {
     //add click eventListener to taskCard to open Edit Task modal
     if (currentProject != completedProject) {
         taskCard.addEventListener("click", () => {
-            
-            console.log(item.getContainingProject());
             const modalHeader = document.querySelector(".modal-header");
             modalHeader.textContent = "Edit Task";
 
@@ -277,7 +296,7 @@ function displayToDoItem(item) {
             dateInput.value = item.dueDate;
             
             const projectSelector = document.querySelector("#projectSelector");
-            projectSelector.value = projectsArray.projects.find(project => project.tasks.includes(item))?.title || "Default";
+            projectSelector.value = getOriginalProject(item).title;
 
             const radioButtons = document.querySelectorAll("input[name='priority']");
             radioButtons.forEach(button => {
@@ -296,7 +315,7 @@ function displayToDoItem(item) {
                 saveChangesBtn.classList.add("editTask-button");
 
                 //eventListeners for buttons
-                deleteTaskBtn.addEventListener("click", () => {
+                deleteTaskBtn.addEventListener("click", (event) => {
                     event.preventDefault();
                     projectsArray.projects.forEach(project => {
                         project.removeTask(item);
@@ -304,8 +323,8 @@ function displayToDoItem(item) {
                     taskCard.remove();
                     modalForm.close();
                     updatePendingCount();
-                    
                     updateCompletedCount();
+                    saveToLocalStorage();
                 })
 
                 saveChangesBtn.addEventListener("click", () => {
@@ -339,6 +358,7 @@ function displayToDoItem(item) {
                     updateCompletedCount();
                     modalForm.close();
                     lastClickedButton.click();
+                    saveToLocalStorage();
                 })
 
                 btnContainer.append(deleteTaskBtn, saveChangesBtn);
@@ -395,7 +415,7 @@ function displayProject(project) {
     projectsSidebar.append(projectButton);
 
     //create eventListener to delete project (maybe make a "are you sure modal?") cba
-    deleteProjectBtn.addEventListener("click", () => {
+    deleteProjectBtn.addEventListener("click", (event) => {
         event.stopPropagation(); 
         projectButton.remove();
         projectsArray.removeProject(project);
@@ -409,13 +429,16 @@ function displayProject(project) {
             break;
             }
         }
-
-        
-
+        saveToLocalStorage();
+        const heading = document.querySelector(".heading");
+        if (heading.textContent === project.title) {
+            todayBtn.click();
+        } else {
+            lastClickedButton.click();
+        }
     })
-    return projectButton;
-}
 
+}
 
 //display all projects in sidebar
 projectsArray.projects.forEach(project => {
@@ -480,7 +503,7 @@ addTaskForm.addEventListener("submit", (event) => {
     currentProject = projectsArray.getProject(data.projectSelector);
     createToDo(data.title, data.description, data.dueDate, data.priority);
     updatePendingCount();
-    //localStorage.setItem("formData", JSON.stringify(formData));   return to this when wanting to add persistent local storage
+    saveToLocalStorage();
     addTaskForm.reset();
     modalForm.close();
     //click the button of the page currently being displayed to refresh the display
@@ -559,6 +582,7 @@ createProjectButton.addEventListener("click", () => {
         displayProject(newProject);
         projectModal.close();
         projectModalInput.value = "";
+        saveToLocalStorage();
     };
 })
 
@@ -573,8 +597,8 @@ clickOutModal(projectModal);
 projectModal.addEventListener("keydown", (event) => {
     if(projectModal.open && event.key === "Enter") {
         event.preventDefault();
-        console.log("shaboing!!")
         createProjectButton.click();
         addProjectBtn.focus();
     }
 })
+
