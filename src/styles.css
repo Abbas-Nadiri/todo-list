@@ -75,9 +75,38 @@ button {
     font-size: 1.3rem;
     font-weight: lighter;
 }
-.logo>img {
-    height: 36px;
+
+@keyframes rotateSequence {
+  0% {
+    transform: rotate(0deg); 
+  }
+  16.5% {
+    transform: rotate(10deg); 
+  }
+  33% {
+    transform: rotate(-20deg);
+  }
+  66.5% {
+    transform: rotate(7deg);
+  }
+  83% {
+    transform: rotate(-14deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
 }
+
+.logo>a>img {
+    height: 36px;
+    transition: transform 0.5s ease;
+}
+
+.logo>a>img:hover {
+  animation: rotateSequence 0.3s ease-in-out;
+  filter: invert(1);
+}
+
 .tasks {
     display: flex;
     flex-direction: column;
@@ -114,6 +143,10 @@ img {
   cursor: pointer;
   align-self: center;
   margin-left: auto;
+  display: none;
+}
+.projects>button:hover .delete-project-btn {
+  display: block;
 }
 
 .delete-project-btn>img {
@@ -127,7 +160,6 @@ img {
 
   transform: rotate(90deg);
 }
-.delete-project-btn>img:hover
 
 #add-project {
   order: 99999;
