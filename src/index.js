@@ -61,6 +61,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
         createToDo("Do it again", "how", formattedTodaysDate, "low");
         createToDo("Do nothing?", "what", format(addDays(todaysDate, 9), "yyyy-MM-dd"), "med");
         displayProject(defaultProject);
+        appendProjectToDropdown(defaultProject);
     }
     todayBtn.click();
 })
