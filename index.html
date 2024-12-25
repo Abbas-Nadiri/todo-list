@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+<script defer src="main.js"></script></head>
+<body>
+    <div class="navbar">
+        <div class="logo">
+            <a href="https://github.com/Abbas-Nadiri">
+                <img src="255d03e28992c4248141.svg" alt="logo">
+            </a>
+            <h1>memento mori</h1>
+        </div>
+
+        <div class="tasks">
+            <p>Tasks</p>
+            <button id="today">
+                <img src="e03169c16a102c54f3c2.svg" alt="today">
+                <span>Today</span>
+            </button>
+            <button id="tomorrow">
+                <img src="9e2c855063897dbccca9.svg" alt="tomorrow">
+                <span>Tomorrow</span>
+            </button>
+            <button id="this-week">
+                <img src="ee843bfc3b0113121313.svg" alt="this-week">
+                <span>This Week</span>
+            </button>
+            <button id="all">
+                <img src="2e2a67d3e51455cc9a4f.svg" alt="all-tasks">
+                <span>All Tasks</span>
+            </button>
+            <button id="completed">
+                <img src="ded9236754875034c872.svg" alt="completed-button">
+                <span>Completed</span>
+            </button>
+        </div>
+
+        <div class="projects">
+            <p>Projects</p>
+            <button id="add-project">
+                <img src="7d1addd73e996d6002cd.svg" alt="plus-icon">
+                <span>Add Project</span>
+            </button>
+        </div>
+        <dialog class="project-modal">
+            <div class="project-modal-container">
+                <div class="project-modal-title">New Project</div>
+                <input type="text" placeholder="Project Name" id="project-modal-input" maxlength="18">
+
+            <div class="project-modal-buttons">
+                <button class="project-modal-cancel">Cancel</button>
+                <button class="project-modal-create">Create</button>
+            </div>
+            </div>
+        </dialog>
+    </div>
+    <div class="container">
+        <div class="header-area">
+            <p class="heading">Today</p>
+            <div class="status">
+                <div class="pending-display">
+                    <div class="pending-count">0</div>
+                    <div>Pending</div>
+                </div>
+                <div class="completed-display">
+                    <div class="completed-count">0</div>
+                    <div>Completed</div>
+                </div>
+            </div>
+        </div>
+        <div class="tasks-display"></div>
+        <button class="addTask-btn">
+            <img src="7d1addd73e996d6002cd.svg" alt="plus-icon">
+            <div>Add Task</div>
+        </button>
+    </div>
+    <dialog class="modal-form">
+        <div class="modal-header">New Task</div>
+
+        <form id="addTask-form">
+            <input type="text" id="title" placeholder="Title" name="title" spellcheck="false" required>
+
+            <textarea id="description" placeholder="Description" name="description" rows="1" spellcheck="false"></textarea>
+            
+            <div class="dueDate-container">
+                <label for="dueDate">Due Date</label>
+                <input type="date" id="dueDate" name="dueDate" onclick="this.showPicker();" required>
+            </div>
+            <div class="projectSelector-container">
+                <label for="projectSelector">Project</label>
+                <select name="projectSelector" id="projectSelector" required>
+
+                </select>
+            </div>
+            <div class="priority-container">
+                <legend>Priority</legend>
+                <fieldset>
+                    <label>
+                        <input type="radio" name="priority" id="low-prio" value="low" required>
+                        Low
+                    </label>
+                    <label>
+                        <input type="radio" name="priority" id="med-prio" value="med" required>
+                        Medium
+                    </label>
+                    <label>
+                        <input type="radio" name="priority" id="high-prio" value="high"required>
+                        High
+                    </label>
+                </fieldset>
+            </div>
+            <div class="button-container">
+                <button class="submit-form">Add Task</button>
+            </div>
+
+        </form>
+        
+
+    </dialog>
+</body>
+</html>
