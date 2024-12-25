@@ -58,8 +58,6 @@ class ProjectsArray {
 
 export const projectsArray = new ProjectsArray();
 
-createProject("Default");
-
 // functions for button eventListeners
 export function createProject(projectName) {
     let newProject = new Project(projectName);
